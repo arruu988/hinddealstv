@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Live TV</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/controls.min.css" crossorigin="anonymous">
+<style>
+    body {
+        background-color: #000;
+        margin: 0;
+    }
+    .video-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        background-color: black;
+    }
+    .shaka-spinner-container {
+        display: none;
+    }
+    .uc {
+        pointer-events: none;
+    }
+</style>
+</head>
+<body>
+    <div class="video-container">
+        <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+            <video autoplay data-shaka-player id="video" style="width:100%; height:100%;"></video>
+        </div>
+    </div>
+
+    <script>
+    async function init() {
+        const video = document.getElementById("video");
+        const ui = video.ui;
+        const controls = ui.getControls();
+        const player = controls.getPlayer();
+
+        player.configure({
+            drm: {
+                clearKeys: {
+                    'e02436b29fbc154b3208a3f424c0cae8': "882a1ba03809292d0d7df4cac26bb9c5"
+                }
+            }
+        });
+
+        ui.configure({
+            controlPanelElements: ["play_pause", "mute", "volume", "spacer", "time_and_duration", "quality", "fullscreen", "overflow_menu"],
+            volumeBarColors: {
+                base: "rgba(0, 0, 255, 1)", 
+                level: "rgb(0, 255, 0)"     
+            },
+            seekBarColors: {
+                base: "rgb(255, 0, 0)",       
+                buffered: "rgb(255, 255, 0)", 
+                played: "rgba(0, 128, 128, 1)" 
+            }
+        });
+        
+        window.player = player;
+        window.ui = ui;
+
+        player.addEventListener("error", onPlayerErrorEvent);
+        controls.addEventListener("error", onUIErrorEvent);
+
+        try {
+            await player.load("https://sundirectgo-live.pc.cdn.bitgravity.com/svchd14/dth.mpd");
+            console.log("The video has now been loaded!");
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function onPlayerErrorEvent(event) {
+        console.error("Error code", event.detail.code, "object", event.detail);
+    }
+    function onUIErrorEvent(event) {
+        console.error("Error code", event.detail.code, "object", event.detail);
+    }
+    function initFailed() {
+        console.error("Unable to load the UI library!");
+    }
+
+    document.addEventListener("shaka-ui-loaded", init);
+    document.addEventListener("shaka-ui-load-failed", initFailed);
+    </script>
+</body>
+</html>
