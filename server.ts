@@ -25,11 +25,9 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const uploadsDir = path.join(process.cwd(), 'uploads');
+const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
+  try { fs.mkdirSync(uploadsDir); } catch(e) {}
 }
 
 const storage = multer.diskStorage({
