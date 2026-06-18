@@ -295,14 +295,14 @@ export function AdminDashboard() {
                     <p className="text-sm text-gray-400">{c.category} • {c.views} views</p>
                     <p className="text-xs text-gray-600 mt-1 truncate">{c.video_url}</p>
                   </div>
-                  <div className="flex sm:flex-col gap-2 justify-end border-t sm:border-t-0 border-white/5 pt-4 sm:pt-0">
+                  <div className="flex sm:flex-col gap-2 justify-end border-t sm:border-t-0 border-white/5 pt-4 sm:pt-0 shrink-0">
                     <button onClick={() => toggleContentVisibility(c.id)} className="flex-1 flex items-center justify-center sm:justify-start gap-2 p-2 bg-white/5 hover:bg-white/10 sm:bg-transparent rounded-lg text-gray-400 transition-colors" title={c.is_active ? 'Hide from users' : 'Show to users'}>
-                      {c.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      <span className="sm:hidden text-xs font-bold">{c.is_active ? 'Hide' : 'Show'}</span>
+                      {c.is_active ? <Eye className="w-4 h-4 shrink-0" /> : <EyeOff className="w-4 h-4 shrink-0" />}
+                      <span className="sm:inline text-xs font-bold">{c.is_active ? 'Hide' : 'Show'}</span>
                     </button>
                     <button onClick={() => deleteContent(c.id)} className="flex-1 flex items-center justify-center sm:justify-start gap-2 p-2 bg-red-500/10 sm:bg-transparent hover:bg-red-500/20 rounded-lg text-red-500 transition-colors">
                       <Trash2 className="w-4 h-4 shrink-0" />
-                      <span className="text-xs font-bold">Remove</span>
+                      <span className="sm:inline text-xs font-bold">Remove</span>
                     </button>
                   </div>
                 </div>

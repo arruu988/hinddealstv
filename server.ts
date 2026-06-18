@@ -180,7 +180,7 @@ app.get('/api/proxy-media', (req, res) => {
 });
 
 // User APIs
-app.post('/api/verify-key', async (req, res) => {
+app.post('/api/verify-key', checkSiteLock, async (req, res) => {
   const { key } = req.body;
   if (!key) return res.status(400).json({ error: 'Key required' });
 
@@ -422,10 +422,16 @@ async function startServer() {
     });
   }
 
-  const PORT = 3000;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

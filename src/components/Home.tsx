@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, AlertCircle, Loader2 } from 'lucide-react';
+import { KeyRound, AlertCircle, Loader2, Tv } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Home() {
   const [key, setKey] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [checkingLock, setCheckingLock] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch('/api/site-status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.locked) {
+          setIsLocked(true);
+        }
+      })
+      .catch(err => console.error(err))
+      .finally(() => setCheckingLock(false));
+  }, []);
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +39,14 @@ export function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key })
       });
-      const data = await res.json();
+      
+      const rawText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        throw new Error('Server returned an unexpected format. Please try again later.');
+      }
       
       if (!res.ok) {
         throw new Error(data.error || 'Invalid key. Please check or contact support.');
@@ -40,6 +61,22 @@ export function Home() {
       setLoading(false);
     }
   };
+
+  if (checkingLock) {
+    return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-8 h-8 text-green-500 animate-spin" /></div>;
+  }
+
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4 text-center">
+        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+           <Tv className="w-8 h-8 text-red-500" />
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-4 tracking-tight">Site Temporarily Paused</h1>
+        <p className="text-gray-400">We are currently undergoing maintenance. Will be back soon. Stay tuned!</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-4">
