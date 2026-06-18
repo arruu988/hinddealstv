@@ -1,7 +1,6 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
@@ -407,6 +406,9 @@ app.get('/api/admin/settings', requireAdmin, async (req, res) => {
 // Vite & Static file serving
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
+    // Dynamically import vite
+    const viteModule = 'vite';
+    const { createServer: createViteServer } = await import(viteModule);
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
