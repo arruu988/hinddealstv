@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string | number;
   user_id: number;
   username: string | null;
   plan: string;
@@ -10,7 +10,7 @@ export interface User {
 }
 
 export interface Content {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   category: string;

@@ -4,6 +4,7 @@ import { Lock, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export function AdminAuth() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export function AdminAuth() {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ email, password })
       });
       
       const data = await res.json();
@@ -26,7 +27,7 @@ export function AdminAuth() {
       
       // Save token in localStorage
       localStorage.setItem('adminToken', data.token);
-      navigate('/admin/dashboard');
+      navigate('/system-admin-portal/dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -42,11 +43,18 @@ export function AdminAuth() {
              <Lock className="w-8 h-8 text-gray-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Admin Portal</h1>
-          <p className="text-gray-500 text-sm">Log in to manage the streaming platform.</p>
+          <p className="text-gray-500 text-sm">Target system secured.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Admin Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all mb-4"
+            />
             <label className="block text-sm font-medium text-gray-400 mb-2">Admin Password</label>
             <input
               type="password"

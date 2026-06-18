@@ -19,6 +19,7 @@ export function AdminDashboard() {
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [mediaType, setMediaType] = useState('Video');
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState('');
 
   // Settings State
   const [siteLocked, setSiteLocked] = useState(false);
@@ -80,6 +81,7 @@ export function AdminDashboard() {
 
   const uploadContent = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploadSuccess('');
     if (!pcloudLink) return alert('Please provide a pCloud link');
     
     setUploadLoading(true);
@@ -97,21 +99,23 @@ export function AdminDashboard() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Uploaded successfully');
+        setUploadSuccess('✓ Video uploaded successfully and is now active on the site.');
         setTitle(''); setDescription(''); setDuration('');
         setPcloudLink(''); setThumbnailUrl('');
         fetchData();
+        setTimeout(() => setUploadSuccess(''), 5000);
       } else {
         alert(data.error);
       }
     } catch (err) {
       console.error(err);
+      alert('Failed to upload video due to a server error.');
     } finally {
       setUploadLoading(false);
     }
   };
 
-  const toggleContentVisibility = async (id: number) => {
+  const toggleContentVisibility = async (id: string | number) => {
     await fetch(`/api/admin/content/${id}/toggle`, { 
       method: 'PUT',
       headers: getAuthHeader()
@@ -119,7 +123,7 @@ export function AdminDashboard() {
     fetchData();
   };
 
-  const deleteContent = async (id: number) => {
+  const deleteContent = async (id: string | number) => {
     if (confirm('Are you sure you want to delete this?')) {
       await fetch(`/api/admin/content/${id}`, { 
         method: 'DELETE',
@@ -144,7 +148,7 @@ export function AdminDashboard() {
     }
   };
 
-  const revokeKey = async (id: number) => {
+  const revokeKey = async (id: string | number) => {
     if (confirm('Revoke access for this user?')) {
       await fetch(`/api/admin/users/${id}/revoke`, { 
         method: 'POST',
@@ -236,6 +240,11 @@ export function AdminDashboard() {
         {activeTab === 'upload' && (
           <div className="bg-[#111] p-6 rounded-2xl border border-white/5">
             <h2 className="text-xl font-bold mb-6">Upload Video Content</h2>
+            {uploadSuccess && (
+              <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-medium">
+                {uploadSuccess}
+              </div>
+            )}
             <form onSubmit={uploadContent} className="space-y-4">
               <div><label className="block text-sm text-gray-400 mb-1">Title</label><input type="text" required value={title} onChange={e=>setTitle(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2" /></div>
               <div><label className="block text-sm text-gray-400 mb-1">Description</label><textarea value={description} onChange={e=>setDescription(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2" rows={3}></textarea></div>
@@ -279,19 +288,20 @@ export function AdminDashboard() {
             <h2 className="text-xl font-bold mb-6">Content Library</h2>
             <div className="space-y-4">
               {contentList.map(c => (
-                <div key={c.id} className={`flex gap-4 p-4 rounded-xl border transition-opacity ${c.is_active ? 'border-white/10' : 'border-white/5 opacity-50'}`}>
-                  <img src={c.thumbnail_url} className="w-32 h-20 object-cover rounded-lg bg-black" />
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white">{c.title}</h3>
+                <div key={c.id} className={`flex flex-col sm:flex-row gap-4 p-4 rounded-xl border transition-opacity ${c.is_active ? 'border-white/10' : 'border-white/5 opacity-50'}`}>
+                  <img src={c.thumbnail_url} className="w-full sm:w-32 h-40 sm:h-20 object-cover rounded-lg bg-black" />
+                  <div className="flex-1 overflow-hidden">
+                    <h3 className="font-bold text-white truncate">{c.title}</h3>
                     <p className="text-sm text-gray-400">{c.category} • {c.views} views</p>
-                    <p className="text-xs text-gray-600 mt-1">{c.video_url}</p>
+                    <p className="text-xs text-gray-600 mt-1 truncate">{c.video_url}</p>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <button onClick={() => toggleContentVisibility(c.id)} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors" title={c.is_active ? 'Hide' : 'Show'}>
+                  <div className="flex sm:flex-col gap-2 justify-end border-t sm:border-t-0 border-white/5 pt-4 sm:pt-0">
+                    <button onClick={() => toggleContentVisibility(c.id)} className="flex-1 flex items-center justify-center sm:justify-start gap-2 p-2 bg-white/5 hover:bg-white/10 sm:bg-transparent rounded-lg text-gray-400 transition-colors" title={c.is_active ? 'Hide from users' : 'Show to users'}>
                       {c.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      <span className="sm:hidden text-xs font-bold">{c.is_active ? 'Hide' : 'Show'}</span>
                     </button>
-                    <button onClick={() => deleteContent(c.id)} className="flex items-center gap-2 p-2 hover:bg-red-500/10 rounded-lg text-red-500 transition-colors">
-                      <Trash2 className="w-4 h-4" />
+                    <button onClick={() => deleteContent(c.id)} className="flex-1 flex items-center justify-center sm:justify-start gap-2 p-2 bg-red-500/10 sm:bg-transparent hover:bg-red-500/20 rounded-lg text-red-500 transition-colors">
+                      <Trash2 className="w-4 h-4 shrink-0" />
                       <span className="text-xs font-bold">Remove</span>
                     </button>
                   </div>

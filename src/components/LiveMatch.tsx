@@ -127,11 +127,16 @@ export function LiveMatch() {
     return () => clearInterval(timer);
   }, []);
 
-  const currentMatch = upcomingMatches.find(m => now >= new Date(m.date.getTime() - 30 * 60000) && now <= new Date(m.date.getTime() + MATCH_DURATION));
-  const nextMatch = upcomingMatches.find(m => m.date > now);
+  const displayMatches = upcomingMatches.filter(m => {
+    const matchEnd = new Date(m.date.getTime() + MATCH_DURATION);
+    return now <= matchEnd;
+  });
+
+  const nextMatch = displayMatches.find(m => m.date > now);
+  const currentMatch = displayMatches.find(m => now >= new Date(m.date.getTime() - 30 * 60000) && now <= new Date(m.date.getTime() + MATCH_DURATION));
   
   const isLive = forceLive || !!currentMatch;
-  const activeMatch = currentMatch || nextMatch || upcomingMatches[0];
+  const activeMatch = currentMatch || nextMatch || displayMatches[0];
 
   useEffect(() => {
     if (!isLive || !videoRef.current || !containerRef.current) return;
@@ -225,10 +230,11 @@ export function LiveMatch() {
     };
   }, [isLive]);
 
-  const timeDiff = nextMatch && !isLive ? nextMatch.date.getTime() - now.getTime() : 0;
-  const hrs = Math.floor(timeDiff / (1000 * 60 * 60));
-  const mins = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-  const secs = Math.floor((timeDiff % (1000 * 60)) / 1000);
+  const timeDiff = nextMatch && !isLive ? Math.max(0, nextMatch.date.getTime() - now.getTime()) : 0;
+  const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+  const hrs = Math.floor((timeDiff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((timeDiff / 1000 / 60) % 60);
+  const secs = Math.floor((timeDiff / 1000) % 60);
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex flex-col pt-2 pb-8 px-2 sm:px-0 animate-in fade-in zoom-in-95 duration-500">
@@ -241,7 +247,7 @@ export function LiveMatch() {
         </button>
         <div className="flex items-center gap-3 pr-2">
           <div className="flex flex-col text-right">
-            <span className="text-sm font-bold text-white">{activeMatch?.name}</span>
+            <span className="text-sm font-bold text-white">{activeMatch?.name || 'No upcoming matches'}</span>
             <span className="text-xs text-gray-400">Grp {activeMatch?.group} • {activeMatch?.venue}</span>
           </div>
         </div>
@@ -258,14 +264,23 @@ export function LiveMatch() {
           </p>
 
           {nextMatch && (
-            <div className="bg-black/50 border border-white/10 p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md relative z-10 backdrop-blur-xl">
+            <div className="bg-black/50 border border-white/10 p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-lg relative z-10 backdrop-blur-xl">
               <div className="flex justify-between text-[10px] sm:text-xs text-green-400 font-bold mb-4 uppercase tracking-wider">
                 <span>{nextMatch.venue}</span>
                 <span>Group {nextMatch.group}</span>
               </div>
               <h3 className="text-lg sm:text-2xl font-bold text-white mb-6 sm:mb-8 border-b border-white/10 pb-4">{nextMatch.name}</h3>
               
-              <div className="flex items-center justify-center gap-4 sm:gap-6">
+              <div className="flex items-center justify-center gap-3 sm:gap-4">
+                {days > 0 && (
+                  <>
+                    <div className="flex flex-col items-center">
+                      <span className="text-3xl sm:text-5xl font-bold text-white">{days.toString().padStart(2, '0')}</span>
+                      <span className="text-[10px] sm:text-xs text-gray-500 mt-2 uppercase tracking-widest">Days</span>
+                    </div>
+                    <span className="text-3xl sm:text-5xl text-gray-600 font-light mb-6 sm:mb-6">:</span>
+                  </>
+                )}
                 <div className="flex flex-col items-center">
                   <span className="text-3xl sm:text-5xl font-bold text-white">{hrs.toString().padStart(2, '0')}</span>
                   <span className="text-[10px] sm:text-xs text-gray-500 mt-2 uppercase tracking-widest">Hours</span>
@@ -322,7 +337,7 @@ export function LiveMatch() {
           <div className="mt-8 bg-[#111] border border-white/10 rounded-2xl p-4 sm:p-6">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Trophy className="w-5 h-5 text-yellow-500"/> Full Schedule</h3>
             <div className="flex gap-4 overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar">
-              {upcomingMatches.map(m => {
+              {displayMatches.map(m => {
                 const MatchLiveStatus = now >= new Date(m.date.getTime() - 30 * 60000) && now <= new Date(m.date.getTime() + MATCH_DURATION);
                 return (
                   <div key={m.id} className={`flex-shrink-0 w-72 sm:w-80 flex flex-col justify-between p-4 rounded-xl border snap-center ${MatchLiveStatus ? 'bg-green-500/10 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : 'bg-black/50 border-white/10'} gap-3`}>

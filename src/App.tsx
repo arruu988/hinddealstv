@@ -31,9 +31,9 @@ export default function App() {
         </Route>
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminAuth />} />
+        <Route path="/system-admin-portal" element={<AdminAuth />} />
         <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/system-admin-portal/dashboard" element={<AdminDashboard />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

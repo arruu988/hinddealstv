@@ -11,7 +11,7 @@ export function AdminLayout() {
     const checkAuth = async () => {
       const token = localStorage.getItem('adminToken');
       if (!token) {
-        navigate('/admin');
+        navigate('/system-admin-portal');
         return;
       }
       try {
@@ -24,7 +24,7 @@ export function AdminLayout() {
         setLoading(false);
       } catch (err) {
         localStorage.removeItem('adminToken');
-        navigate('/admin');
+        navigate('/system-admin-portal');
       }
     };
     checkAuth();
@@ -37,7 +37,7 @@ export function AdminLayout() {
       console.error(err);
     } finally {
       localStorage.removeItem('adminToken');
-      navigate('/admin');
+      navigate('/system-admin-portal');
     }
   };
 
@@ -48,7 +48,7 @@ export function AdminLayout() {
       <header className="sticky top-0 z-50 bg-[#050505] border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/admin/dashboard" className="flex items-center gap-2">
+            <Link to="/system-admin-portal/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                 <Settings className="w-4 h-4 text-blue-400" />
               </div>
