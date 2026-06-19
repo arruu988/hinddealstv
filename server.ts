@@ -189,7 +189,7 @@ app.post('/api/verify-key', checkSiteLock, async (req, res) => {
 
     const user = snap.docs[0].data();
     if (user.is_active === 0) return res.status(401).json({ error: 'Token Revoked' });
-    if (new Date(user.expiry_date) < new Date()) return res.status(401).json({ error: 'Key expired' });
+    if (new Date(user.expiry_date) < new Date()) return res.status(401).json({ error: 'Key expired contact admin for new key' });
 
     res.json({ success: true, plan: user.plan, expiry: user.expiry_date, key: user.key });
   } catch (err) {
@@ -270,14 +270,18 @@ app.post('/api/admin/logout', (req, res) => {
 });
 
 app.post('/api/admin/generate-key', requireAdmin, async (req, res) => {
-  const { userId, planDuration } = req.body;
+  const { userId, planDuration, customDays } = req.body;
   
   const genKey = crypto.randomBytes(8).toString('hex').toUpperCase();
   
   let days = 30;
-  if (planDuration === '3 Months') days = 90;
-  if (planDuration === '6 Months') days = 180;
-  if (planDuration === '1 Year') days = 365;
+  if (customDays && parseInt(customDays) > 0) {
+    days = parseInt(customDays);
+  } else {
+    if (planDuration === '3 Months') days = 90;
+    if (planDuration === '6 Months') days = 180;
+    if (planDuration === '1 Year') days = 365;
+  }
 
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() + days);
@@ -286,7 +290,7 @@ app.post('/api/admin/generate-key', requireAdmin, async (req, res) => {
     const usersRef = collection(db, 'users');
     await addDoc(usersRef, {
       user_id: userId,
-      plan: planDuration,
+      plan: customDays ? `${customDays} Days` : planDuration,
       key: genKey,
       expiry_date: expiryDate.toISOString(),
       is_active: 1,
@@ -423,7 +427,7 @@ async function startServer() {
   }
 
   if (!process.env.VERCEL) {
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
     });

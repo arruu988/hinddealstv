@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Radio, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// @ts-ignore
-import shaka from 'shaka-player/dist/shaka-player.ui';
-import 'shaka-player/dist/controls.css';
 
 const upcomingMatches = [
   { id: 1, date: new Date('2026-06-11T19:00:00.000Z'), name: "Mexico vs South Africa", group: "A", venue: "Mexico City" },
@@ -139,95 +136,7 @@ export function LiveMatch() {
   const activeMatch = currentMatch || nextMatch || displayMatches[0];
 
   useEffect(() => {
-    if (!isLive || !videoRef.current || !containerRef.current) return;
-
-    shaka.polyfill.installAll();
-    
-    if (!shaka.Player.isBrowserSupported()) {
-      alert('Browser not supported!');
-      return;
-    }
-
-    const player = new shaka.Player(videoRef.current);
-    const ui = new shaka.ui.Overlay(player, containerRef.current, videoRef.current);
-
-    ui.configure({
-      controlPanelElements: ["play_pause", "time_and_duration", "spacer", "playback_rate", "volume", "quality", "fullscreen", "overflow_menu"],
-      volumeBarColors: {
-        base: "rgba(0, 0, 255, 1)", 
-        level: "rgb(0, 255, 0)"     
-      },
-      seekBarColors: {
-        base: "rgb(255, 0, 0)",       
-        buffered: "rgb(255, 255, 0)", 
-        played: "rgba(0, 128, 128, 1)" 
-      }
-    });
-
-    const manifestUri = "https://sundirectgo-live.pc.cdn.bitgravity.com/svchd18/dth.mpd";
-    const clearKeys = {
-      "493eab903cf5a797e731d6e5c8d30c98": "353930004d8da5907ccf70a5ff776f45"
-    };
-
-    player.configure({
-      drm: {
-        clearKeys: clearKeys
-      }
-    });
-
-    player.load(manifestUri).then(() => {
-      console.log('Match loaded successfully!');
-      videoRef.current?.play().catch(e => console.log("Auto-play blocked by browser", e));
-    }).catch((error: any) => {
-      console.error('Error loading match:', error);
-    });
-
-    let touchStartX = 0;
-    const handleDoubleClick = (e: MouseEvent) => {
-       const video = videoRef.current;
-       if (!video) return;
-       const rect = video.getBoundingClientRect();
-       const clickX = e.clientX - rect.left;
-       if (clickX > rect.width / 2) {
-         video.currentTime = Math.min(video.duration || 999999, video.currentTime + 10);
-       } else {
-         video.currentTime = Math.max(0, video.currentTime - 10);
-       }
-    };
-    
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.touches[0].clientX;
-    };
-    
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!videoRef.current) return;
-      const touchEndX = e.changedTouches[0].clientX;
-      const diff = touchEndX - touchStartX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) {
-          videoRef.current.currentTime = Math.min(videoRef.current.duration || 999999, videoRef.current.currentTime + 10);
-        } else {
-          videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10);
-        }
-      }
-    };
-
-    const videoObj = videoRef.current;
-    if (videoObj) {
-      videoObj.addEventListener('dblclick', handleDoubleClick);
-      videoObj.addEventListener('touchstart', handleTouchStart);
-      videoObj.addEventListener('touchend', handleTouchEnd);
-    }
-
-    return () => {
-      player.destroy();
-      ui.destroy();
-      if (videoObj) {
-         videoObj.removeEventListener('dblclick', handleDoubleClick);
-         videoObj.removeEventListener('touchstart', handleTouchStart);
-         videoObj.removeEventListener('touchend', handleTouchEnd);
-      }
-    };
+    // Iframe handled via JSX
   }, [isLive]);
 
   const timeDiff = nextMatch && !isLive ? Math.max(0, nextMatch.date.getTime() - now.getTime()) : 0;
@@ -323,14 +232,12 @@ export function LiveMatch() {
 
           <div 
             ref={containerRef} 
-            className="w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto"
+            className="w-full h-[60vh] sm:h-[75vh] md:h-[85vh] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto"
           >
-            <video 
-              ref={videoRef} 
-              className="absolute inset-0 w-full h-full object-contain bg-black"
-              autoPlay 
-              playsInline 
-              muted={false}
+            <iframe
+               src="https://fifa-world-cup-live.pages.dev/hindi"
+               className="absolute inset-0 w-full h-full border-none"
+               allowFullScreen
             />
           </div>
           

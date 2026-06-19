@@ -8,6 +8,7 @@ export function Dashboard() {
   const [content, setContent] = useState<Content[]>([]);
   const [userStatus, setUserStatus] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<'Video' | 'Audio' | 'Image'>('Video');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,8 +25,7 @@ export function Dashboard() {
         const userData = await userRes.json();
 
         if (contentData.success) {
-          // just show latest 4 items
-          setContent(contentData.data.slice(0, 4));
+          setContent(contentData.data);
         }
         if (userData.success) {
           setUserStatus(userData.data);
@@ -38,6 +38,13 @@ export function Dashboard() {
     };
     fetchData();
   }, []);
+
+  const displayedContent = content.filter(item => {
+    if (activeCategory === 'Video') return !['Audio', 'Image', 'Photos'].includes(item.media_type);
+    if (activeCategory === 'Audio') return item.media_type === 'Audio';
+    if (activeCategory === 'Image') return ['Image', 'Photos'].includes(item.media_type);
+    return true;
+  });
 
   if (loading) return null;
 
@@ -99,31 +106,39 @@ export function Dashboard() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white tracking-tight">Premium Library</h2>
-          <Link to="/library" className="text-sm font-medium text-green-400 hover:text-green-300 flex items-center gap-1 transition-colors">
-            View All <ChevronRight className="w-4 h-4" />
-          </Link>
+          <div className="flex bg-black p-1 rounded-lg border border-white/10">
+            {['Video', 'Audio', 'Image'].map((cat) => (
+              <button 
+                key={cat} 
+                onClick={() => setActiveCategory(cat as 'Video' | 'Audio' | 'Image')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeCategory === cat ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+              >
+                {cat}s
+              </button>
+            ))}
+          </div>
         </div>
         
-        {content.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {content.map((item) => (
+        {displayedContent.length > 0 ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {displayedContent.map((item) => (
               <Link key={item.id} to={`/watch/${item.id}`} className="group">
-                <div className="bg-[#1A1A1A] rounded-xl overflow-hidden border border-white/5 transition-all hover:border-white/20 hover:shadow-2xl">
+                <div className="bg-[#1A1A1A] rounded-xl overflow-hidden border border-white/5 transition-all hover:border-white/20 hover:shadow-2xl flex flex-col h-full">
                   <div className="aspect-video relative overflow-hidden bg-black/50">
                     <img
                       src={item.thumbnail_url}
                       alt={item.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2 sm:p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       {item.media_type !== 'Image' && item.media_type !== 'File' && item.media_type !== 'Document' && (
-                        <Play className="w-8 h-8 text-white fill-current opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300" />
+                        <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white fill-current transform translate-y-2 group-hover:translate-y-0 transition-all duration-300" />
                       )}
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-white line-clamp-1 group-hover:text-green-400 transition-colors">{item.title}</h3>
-                    <p className="text-xs text-gray-500 mt-1">{item.category}</p>
+                  <div className="p-3 sm:p-4 flex-1 flex flex-col justify-center">
+                    <h3 className="font-semibold text-sm sm:text-base text-white line-clamp-2 group-hover:text-green-400 transition-colors leading-tight">{item.title}</h3>
+                    <p className="text-xs text-gray-500 mt-1 truncate">{document.body.clientWidth < 640 ? item.category.substring(0, 10) : item.category}</p>
                   </div>
                 </div>
               </Link>
@@ -132,7 +147,7 @@ export function Dashboard() {
         ) : (
           <div className="text-center p-12 bg-[#1A1A1A] rounded-2xl border border-white/5">
                  <Play className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400">No premium content available yet.</p>
+            <p className="text-gray-400">No content available in this category yet.</p>
           </div>
         )}
       </div>

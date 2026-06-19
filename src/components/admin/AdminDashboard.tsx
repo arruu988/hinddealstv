@@ -8,6 +8,7 @@ export function AdminDashboard() {
   // Key Gen State
   const [userId, setUserId] = useState('');
   const [plan, setPlan] = useState('1 Month');
+  const [customDays, setCustomDays] = useState('');
   const [generatedKey, setGeneratedKey] = useState('');
 
   // Upload State
@@ -60,7 +61,7 @@ export function AdminDashboard() {
           'Content-Type': 'application/json',
           ...getAuthHeader()
         },
-        body: JSON.stringify({ userId, planDuration: plan })
+        body: JSON.stringify({ userId, planDuration: plan, customDays })
       });
       const data = await res.json();
       if (data.success) {
@@ -173,14 +174,18 @@ export function AdminDashboard() {
             <div className="bg-[#111] p-6 rounded-2xl border border-white/5">
               <h2 className="text-xl font-bold mb-6">Create New Key</h2>
               <form onSubmit={generateKey} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">User ID</label>
                     <input type="number" required value={userId} onChange={e => setUserId(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 focus:border-blue-500" placeholder="e.g. 1001" />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Plan Duration</label>
-                    <select value={plan} onChange={e => setPlan(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 focus:border-blue-500">
+                    <label className="block text-sm text-gray-400 mb-1">Custom Days</label>
+                    <input type="number" min="1" value={customDays} onChange={e => setCustomDays(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 focus:border-blue-500" placeholder="e.g. 3" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">...or Plan</label>
+                    <select value={plan} disabled={!!customDays} onChange={e => setPlan(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 focus:border-blue-500 disabled:opacity-50">
                       <option>1 Month</option>
                       <option>3 Months</option>
                       <option>6 Months</option>
@@ -220,7 +225,7 @@ export function AdminDashboard() {
                       <tr key={u.id} className="border-b border-white/5">
                         <td className="px-4 py-3 font-mono">{u.user_id}</td>
                         <td className="px-4 py-3">{u.plan}</td>
-                        <td className="px-4 py-3 font-mono text-gray-500">{u.key.substring(0,6)}...</td>
+                        <td className="px-4 py-3 font-mono text-gray-300">{u.key}</td>
                         <td className="px-4 py-3">{new Date(u.expiry_date).toLocaleDateString()}</td>
                         <td className="px-4 py-3 flex gap-2">
                           <span className={`px-2 py-0.5 rounded text-xs ${u.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
