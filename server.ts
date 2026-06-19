@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import https from 'https';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc, query, where, orderBy, setDoc } from "firebase/firestore";
+import { getFirestore, initializeFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc, query, where, orderBy, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnf3s9Mpm350u18U8XYk18bhTGiKPRZtc",
@@ -22,7 +22,7 @@ const firebaseConfig = {
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+const db = initializeFirestore(firebaseApp, { experimentalForceLongPolling: true });
 
 const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -46,30 +46,38 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_vip_hack';
 
 // --- Initialization ---
 async function initializeSettings() {
-  const settingsRef = doc(db, 'site_settings', 'site_locked');
-  const snap = await getDoc(settingsRef);
-  if (!snap.exists()) {
-    await setDoc(settingsRef, { setting_value: 'false' });
-  }
+  try {
+    const settingsRef = doc(db, 'site_settings', 'site_locked');
+    const snap = await getDoc(settingsRef);
+    if (!snap.exists()) {
+      await setDoc(settingsRef, { setting_value: 'false' });
+    }
 
-  const masterKey = 'lion';
-  const usersRef = collection(db, 'users');
-  const q = query(usersRef, where('key', '==', masterKey));
-  const userSnap = await getDocs(q);
-  if (userSnap.empty) {
-    const future = new Date();
-    future.setFullYear(future.getFullYear() + 10);
-    await addDoc(usersRef, {
-      user_id: 999,
-      plan: 'Master Plan',
-      key: masterKey,
-      expiry_date: future.toISOString(),
-      is_active: 1,
-      created_at: new Date().toISOString()
-    });
+    const masterKey = 'lion';
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('key', '==', masterKey));
+    const userSnap = await getDocs(q);
+    if (userSnap.empty) {
+      const future = new Date();
+      future.setFullYear(future.getFullYear() + 10);
+      await addDoc(usersRef, {
+        user_id: 999,
+        plan: 'Master Plan',
+        key: masterKey,
+        expiry_date: future.toISOString(),
+        is_active: 1,
+        created_at: new Date().toISOString()
+      });
+    }
+  } catch (err) {
+    console.error("Initialize settings skipped/failed:", err);
   }
 }
-initializeSettings();
+if (!process.env.VERCEL) {
+  // Only auto-initialize on standard local server, as Serverless functions freeze 
+  // execution and this runs asynchronously the moment the file is imported.
+  initializeSettings();
+}
 
 // --- Middlewares ---
 const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -178,7 +186,7 @@ app.get('/api/proxy-media', (req, res) => {
 
 // User APIs
 app.post('/api/verify-key', checkSiteLock, async (req, res) => {
-  const { key } = req.body;
+  const key = (req.body.key || '').trim();
   if (!key) return res.status(400).json({ error: 'Key required' });
 
   try {
@@ -253,10 +261,13 @@ app.get('/api/site-status', async (req, res) => {
 // Admin APIs
 
 app.post('/api/admin/login', (req, res) => {
-  if (req.body.email === ADMIN_EMAIL && req.body.password === ADMIN_PASSWORD) {
+  const email = (req.body.email || '').trim();
+  const password = (req.body.password || '').trim();
+
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
     const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '1d' });
     res.json({ success: true, token });
-  } else if (req.body.password === ADMIN_PASSWORD && !req.body.email) {
+  } else if (password === ADMIN_PASSWORD && !email) {
     // Check against old logic just in case it's used elsewhere
     const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '1d' });
     res.json({ success: true, token });
