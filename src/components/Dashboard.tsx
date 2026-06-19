@@ -122,7 +122,7 @@ export function Dashboard() {
         </div>
         
         {displayedContent.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
             {displayedContent.map((item) => (
               <Link key={item.id} to={`/watch/${item.id}`} className="group">
                 <div className="bg-[#1A1A1A] rounded-xl overflow-hidden border border-white/5 transition-all hover:border-white/20 hover:shadow-2xl flex flex-col h-full">
