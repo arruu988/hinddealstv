@@ -8,10 +8,11 @@ export function Dashboard() {
   const [content, setContent] = useState<Content[]>([]);
   const [userStatus, setUserStatus] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<'Video' | 'Audio' | 'Image'>('Video');
+  const [activeCategory, setActiveCategory] = useState<'Movies' | 'Web Series' | 'Music' | 'Image'>('Movies');
 
   useEffect(() => {
     const fetchData = async () => {
+
       const key = localStorage.getItem('userKey');
       if (!key) return;
 
@@ -40,8 +41,9 @@ export function Dashboard() {
   }, []);
 
   const displayedContent = content.filter(item => {
-    if (activeCategory === 'Video') return !['Audio', 'Image', 'Photos'].includes(item.media_type);
-    if (activeCategory === 'Audio') return item.media_type === 'Audio';
+    if (activeCategory === 'Movies') return item.category !== 'Web Series' && !['Audio', 'Image', 'Photos'].includes(item.media_type);
+    if (activeCategory === 'Web Series') return item.category === 'Web Series';
+    if (activeCategory === 'Music') return item.media_type === 'Audio';
     if (activeCategory === 'Image') return ['Image', 'Photos'].includes(item.media_type);
     return true;
   });
@@ -106,14 +108,14 @@ export function Dashboard() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white tracking-tight">Premium Library</h2>
-          <div className="flex bg-black p-1 rounded-lg border border-white/10">
-            {['Video', 'Audio', 'Image'].map((cat) => (
+          <div className="flex bg-black p-1 rounded-lg border border-white/10 overflow-x-auto max-w-full">
+            {['Movies', 'Web Series', 'Music', 'Image'].map((cat) => (
               <button 
                 key={cat} 
-                onClick={() => setActiveCategory(cat as 'Video' | 'Audio' | 'Image')}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeCategory === cat ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+                onClick={() => setActiveCategory(cat as 'Movies' | 'Web Series' | 'Music' | 'Image')}
+                className={`flex-none px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeCategory === cat ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
               >
-                {cat}s
+                {cat}
               </button>
             ))}
           </div>

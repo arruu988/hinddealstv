@@ -266,7 +266,7 @@ export function AdminDashboard() {
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Category</label>
                   <select value={category} onChange={e=>setCategory(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2">
-                    <option>Movies</option><option>Photos</option><option>Shows</option><option>Highlights</option><option>Sports</option>
+                    <option>Movies</option><option>Web Series</option><option>Photos</option><option>Shows</option><option>Highlights</option><option>Sports</option>
                   </select>
                 </div>
                 <div><label className="block text-sm text-gray-400 mb-1">Duration (Optional)</label><input type="text" value={duration} onChange={e=>setDuration(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2" /></div>
