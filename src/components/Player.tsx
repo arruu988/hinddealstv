@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, Eye, Maximize } from 'lucide-react';
+import { ArrowLeft, Loader2, Eye, Maximize, Minimize } from 'lucide-react';
 import { Content } from '../types';
 
 export function Player() {
@@ -153,7 +153,7 @@ export function Player() {
             controls 
             autoPlay
             playsInline
-            controlsList="nodownload"
+            controlsList="nodownload nofullscreen"
             className={`w-full h-full object-contain`}
             poster={content.thumbnail_url}
             src={content.video_url}
@@ -165,10 +165,10 @@ export function Player() {
         {(content.media_type === 'Video' || content.media_type === 'Movies' || content.media_type === 'Shows' || content.media_type === 'Sports' || content.media_type === 'Highlights') && (
           <button 
             onClick={toggleFullscreen}
-            className={`absolute top-4 right-4 bg-black/60 hover:bg-black/90 text-white p-3 rounded-full ${isCustomFullscreen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-[10000]`}
+            className={`absolute bottom-12 right-2 md:bottom-10 md:right-4 bg-black/60 hover:bg-black/90 text-white p-2 rounded z-[10000] backdrop-blur-sm transition-all`}
             title="Toggle Custom Fullscreen"
           >
-            <Maximize className="w-6 h-6" />
+            {isCustomFullscreen ? <Minimize className="w-5 h-5 md:w-6 md:h-6" /> : <Maximize className="w-5 h-5 md:w-6 md:h-6" />}
           </button>
         )}
       </div>
