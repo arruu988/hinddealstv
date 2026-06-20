@@ -9,7 +9,58 @@ export function Player() {
   const [content, setContent] = useState<Content | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCustomFullscreen, setIsCustomFullscreen] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
   const playerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    const el = playerRef.current;
+    if (!el) return;
+
+    if (!isCustomFullscreen) {
+      const video = el.querySelector('video');
+      
+      // Try iOS native fullscreen first
+      if (video && typeof (video as any).webkitEnterFullscreen === 'function') {
+        (video as any).webkitEnterFullscreen();
+        return;
+      }
+
+      // Try Standard Web Fullscreen
+      try {
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if ((el as any).webkitRequestFullscreen) {
+          await (el as any).webkitRequestFullscreen();
+        }
+        
+        // Try orientation lock
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (err) {
+        console.warn("Fullscreen API failed, depending on CSS fallback.", err);
+      }
+      setIsCustomFullscreen(true);
+    } else {
+      setIsCustomFullscreen(false);
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen().catch(() => {});
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        }
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+      } catch (err) {}
+    }
+  };
 
   useEffect(() => {
     const fetchContentAndMarkView = async () => {
@@ -63,13 +114,23 @@ export function Player() {
 
       <div 
         ref={playerRef} 
-        className={`${isCustomFullscreen ? 'fixed inset-0 min-h-screen w-screen z-[9999] bg-black' : 'aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative'} flex items-center justify-center group`}
+        style={isCustomFullscreen && !isLandscape ? {
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          width: '100vh',
+          height: '100vw',
+          transform: 'translate(-50%, -50%) rotate(90deg)',
+          zIndex: 9999,
+          backgroundColor: 'black'
+        } : {}}
+        className={`${isCustomFullscreen && isLandscape ? 'fixed inset-0 min-h-screen w-screen z-[9999] bg-black' : !isCustomFullscreen ? 'aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative' : ''} flex items-center justify-center group`}
       >
         {content.media_type === 'Image' || content.media_type === 'Photos' ? (
           <img 
             src={content.video_url} 
             alt={content.title}
-            className={`object-contain ${isCustomFullscreen ? 'w-screen h-screen' : 'w-full h-full'}`}
+            className={`object-contain ${isCustomFullscreen ? 'w-full h-full' : 'w-full h-full'}`}
           />
         ) : content.media_type === 'Audio' ? (
           <audio 
@@ -103,11 +164,11 @@ export function Player() {
 
         {(content.media_type === 'Video' || content.media_type === 'Movies' || content.media_type === 'Shows' || content.media_type === 'Sports' || content.media_type === 'Highlights') && (
           <button 
-            onClick={() => setIsCustomFullscreen(!isCustomFullscreen)}
-            className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-[10000]"
+            onClick={toggleFullscreen}
+            className={`absolute top-4 right-4 bg-black/60 hover:bg-black/90 text-white p-3 rounded-full ${isCustomFullscreen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-[10000]`}
             title="Toggle Custom Fullscreen"
           >
-            <Maximize className="w-5 h-5" />
+            <Maximize className="w-6 h-6" />
           </button>
         )}
       </div>
