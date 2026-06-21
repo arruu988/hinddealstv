@@ -157,7 +157,7 @@ export function Player() {
             const origin = typeof window !== 'undefined' ? window.location.origin : '';
             return (
               <iframe
-                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&playsinline=1&origin=${origin}`}
+                src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&playsinline=1&origin=${origin}`}
                 className={`w-full h-full border-none`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen={true}
