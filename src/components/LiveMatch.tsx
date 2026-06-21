@@ -232,13 +232,9 @@ export function LiveMatch() {
 
           <div 
             ref={containerRef} 
-            className="w-full h-[60vh] sm:h-[75vh] md:h-[85vh] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto"
+            className="w-full h-[60vh] sm:h-[75vh] md:h-[85vh] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto flex items-center justify-center text-center p-6"
           >
-            <iframe
-               src="https://footsters.api-live.workers.dev/?play=10065&stream=1"
-               className="absolute inset-0 w-full h-full border-none"
-               allowFullScreen
-            />
+            <p className="text-xl sm:text-2xl text-gray-400 font-medium">Unable to play FIFA, contact Admin</p>
           </div>
           
           <div className="mt-8 bg-[#111] border border-white/10 rounded-2xl p-4 sm:p-6">
