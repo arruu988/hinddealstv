@@ -148,19 +148,36 @@ export function Player() {
               Download File
             </a>
           </div>
-        ) : (
-          <video 
-            controls 
-            autoPlay
-            playsInline
-            controlsList="nodownload nofullscreen"
-            className={`w-full h-full object-contain`}
-            poster={content.thumbnail_url}
-            src={content.video_url}
-          >
-            Your browser does not support the video tag.
-          </video>
-        )}
+        ) : (() => {
+          const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+          const ytMatch = content.video_url.match(ytRegExp);
+          const ytId = (ytMatch && ytMatch[2].length === 11) ? ytMatch[2] : null;
+
+          if (ytId) {
+            return (
+              <iframe
+                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                className={`w-full h-full border-none`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen={true}
+              ></iframe>
+            );
+          }
+
+          return (
+            <video 
+              controls 
+              autoPlay
+              playsInline
+              controlsList="nodownload nofullscreen"
+              className={`w-full h-full object-contain`}
+              poster={content.thumbnail_url}
+              src={content.video_url}
+            >
+              Your browser does not support the video tag.
+            </video>
+          );
+        })()}
 
         {(content.media_type === 'Video' || content.media_type === 'Movies' || content.media_type === 'Shows' || content.media_type === 'Sports' || content.media_type === 'Highlights') && (
           <button 

@@ -118,10 +118,20 @@ export function LiveMatch() {
 
   const [now, setNow] = useState(new Date());
   const [forceLive, setForceLive] = useState(false);
+  const [fifaUrl, setFifaUrl] = useState<string | null>(null);
   
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/site-status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.fifaUrl) setFifaUrl(data.fifaUrl);
+      })
+      .catch(() => {});
   }, []);
 
   const displayMatches = upcomingMatches.filter(m => {
@@ -232,9 +242,34 @@ export function LiveMatch() {
 
           <div 
             ref={containerRef} 
-            className="w-full h-[60vh] sm:h-[75vh] md:h-[85vh] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto flex items-center justify-center text-center p-6"
+            className={`w-full h-[60vh] sm:h-[75vh] md:h-[85vh] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto flex items-center justify-center text-center ${!fifaUrl ? 'p-6' : ''}`}
           >
-            <p className="text-xl sm:text-2xl text-gray-400 font-medium">Unable to play FIFA, contact Admin</p>
+            {(() => {
+              if (!fifaUrl) return <p className="text-xl sm:text-2xl text-gray-400 font-medium">Unable to play FIFA, contact Admin</p>;
+
+              const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+              const ytMatch = fifaUrl.match(ytRegExp);
+              const ytId = (ytMatch && ytMatch[2].length === 11) ? ytMatch[2] : null;
+
+              if (ytId) {
+                return (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                    className="absolute inset-0 w-full h-full border-none"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen={true}
+                  />
+                );
+              }
+
+              return (
+                <iframe
+                  src={fifaUrl}
+                  className="absolute inset-0 w-full h-full border-none"
+                  allowFullScreen={true}
+                />
+              );
+            })()}
           </div>
           
           <div className="mt-8 bg-[#111] border border-white/10 rounded-2xl p-4 sm:p-6">

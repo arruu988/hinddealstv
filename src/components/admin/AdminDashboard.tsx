@@ -24,6 +24,8 @@ export function AdminDashboard() {
 
   // Settings State
   const [siteLocked, setSiteLocked] = useState(false);
+  const [fifaUrl, setFifaUrl] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState('');
 
   // Data
   const [usersList, setUsersList] = useState<User[]>([]);
@@ -46,7 +48,27 @@ export function AdminDashboard() {
       ]);
       if (users.success) setUsersList(users.data);
       if (content.success) setContentList(content.data);
-      if (settings.success) setSiteLocked(settings.locked);
+      if (settings.success) {
+        setSiteLocked(settings.locked);
+        setFifaUrl(settings.fifaUrl || '');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const saveFifaUrl = async () => {
+    try {
+      const res = await fetch('/api/admin/save-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ fifaUrl })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettingsSuccess('FIFA Live Stream URL updated successfully!');
+        setTimeout(() => setSettingsSuccess(''), 3000);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -273,8 +295,8 @@ export function AdminDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Media / pCloud Link</label>
-                  <input type="text" required placeholder="https://u.pcloud.link/..." value={pcloudLink} onChange={e=>setPcloudLink(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2" />
+                  <label className="block text-sm text-gray-400 mb-1">Media / YouTube / pCloud Link</label>
+                  <input type="text" required placeholder="https://u.pcloud.link/... or https://youtube.com/..." value={pcloudLink} onChange={e=>setPcloudLink(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-4 py-2" />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Thumbnail Link (Optional/Auto for images)</label>
@@ -317,9 +339,37 @@ export function AdminDashboard() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-[#111] p-6 rounded-2xl border border-white/5">
-            <h2 className="text-xl font-bold mb-6">Platform Security</h2>
+          <div className="bg-[#111] p-6 rounded-2xl border border-white/5 space-y-6">
+            <h2 className="text-xl font-bold mb-6">Platform Settings & Security</h2>
             
+            {settingsSuccess && (
+              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-medium">
+                {settingsSuccess}
+              </div>
+            )}
+
+            <div className="p-6 bg-white/5 border border-white/10 rounded-xl space-y-4">
+               <div>
+                 <h3 className="font-bold text-white text-lg">FIFA Live Stream</h3>
+                 <p className="text-sm text-gray-400 mt-1">Provide a YouTube Live URL (or generic media link) to display during live FIFA matches. Clear the field to remove.</p>
+               </div>
+               <div className="flex gap-4">
+                 <input 
+                   type="text" 
+                   value={fifaUrl} 
+                   onChange={e => setFifaUrl(e.target.value)} 
+                   placeholder="e.g. https://www.youtube.com/watch?v=..."
+                   className="flex-1 bg-black border border-white/10 rounded-lg px-4 py-2"
+                 />
+                 <button 
+                   onClick={saveFifaUrl}
+                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                 >
+                   Save
+                 </button>
+               </div>
+            </div>
+
             <div className="flex items-center justify-between p-6 bg-red-500/5 border border-red-500/20 rounded-xl">
               <div>
                 <h3 className="font-bold text-white text-lg">Site Lock</h3>

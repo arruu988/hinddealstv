@@ -252,9 +252,17 @@ app.get('/api/site-status', async (req, res) => {
   try {
     const settingsRef = doc(db, 'site_settings', 'site_locked');
     const snap = await getDoc(settingsRef);
-    res.json({ success: true, locked: snap.exists() ? snap.data().setting_value === 'true' : false });
+    
+    const fifaRef = doc(db, 'site_settings', 'fifa_url');
+    const fifaSnap = await getDoc(fifaRef);
+    
+    res.json({ 
+      success: true, 
+      locked: snap.exists() ? snap.data().setting_value === 'true' : false,
+      fifaUrl: fifaSnap.exists() ? fifaSnap.data().setting_value : null
+    });
   } catch (err) {
-    res.json({ success: true, locked: false });
+    res.json({ success: true, locked: false, fifaUrl: null });
   }
 });
 
@@ -320,8 +328,18 @@ app.post('/api/admin/upload-content', requireAdmin, express.json(), async (req, 
     return res.status(400).json({ error: 'Media link is required' });
   }
 
-  const mediaUrl = pcloudLink.includes('http') ? `/api/proxy-media?url=${encodeURIComponent(pcloudLink)}` : pcloudLink;
-  const thumbUrl = thumbnailUrl ? (thumbnailUrl.includes('http') ? `/api/proxy-media?url=${encodeURIComponent(thumbnailUrl)}` : thumbnailUrl) : mediaUrl;
+  const isYouTube = pcloudLink.includes('youtube.com/') || pcloudLink.includes('youtu.be/');
+  let ytId = null;
+  if (isYouTube) {
+    const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = pcloudLink.match(ytRegExp);
+    if (match && match[2].length === 11) ytId = match[2];
+  }
+
+  const mediaUrl = isYouTube ? pcloudLink : (pcloudLink.includes('http') ? `/api/proxy-media?url=${encodeURIComponent(pcloudLink)}` : pcloudLink);
+  const thumbUrl = thumbnailUrl ? 
+    (thumbnailUrl.includes('http') ? `/api/proxy-media?url=${encodeURIComponent(thumbnailUrl)}` : thumbnailUrl) 
+    : (ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : mediaUrl);
 
   try {
     await addDoc(collection(db, 'content'), {
@@ -408,11 +426,34 @@ app.post('/api/admin/users/:id/revoke', requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/admin/save-settings', requireAdmin, async (req, res) => {
+  const { locked, fifaUrl } = req.body;
+  try {
+    if (locked !== undefined) {
+      await setDoc(doc(db, 'site_settings', 'site_locked'), { setting_value: locked ? 'true' : 'false' });
+    }
+    if (fifaUrl !== undefined) {
+      await setDoc(doc(db, 'site_settings', 'fifa_url'), { setting_value: fifaUrl });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server Error' });
+  }
+});
+
 app.get('/api/admin/settings', requireAdmin, async (req, res) => {
   try {
     const settingsRef = doc(db, 'site_settings', 'site_locked');
     const snap = await getDoc(settingsRef);
-    res.json({ success: true, locked: snap.exists() ? snap.data().setting_value === 'true' : false });
+    
+    const fifaRef = doc(db, 'site_settings', 'fifa_url');
+    const fifaSnap = await getDoc(fifaRef);
+    
+    res.json({ 
+      success: true, 
+      locked: snap.exists() ? snap.data().setting_value === 'true' : false,
+      fifaUrl: fifaSnap.exists() ? fifaSnap.data().setting_value : ''
+    });
   } catch (err) {
     res.status(500).json({ error: 'Server Error' });
   }
