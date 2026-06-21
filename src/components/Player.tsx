@@ -149,7 +149,7 @@ export function Player() {
             </a>
           </div>
         ) : (() => {
-          const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+          const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|live\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
           const ytMatch = content.video_url.match(ytRegExp);
           const ytId = (ytMatch && ytMatch[2].length === 11) ? ytMatch[2] : null;
 

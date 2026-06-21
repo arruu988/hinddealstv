@@ -247,7 +247,7 @@ export function LiveMatch() {
             {(() => {
               if (!fifaUrl) return <p className="text-xl sm:text-2xl text-gray-400 font-medium">Unable to play FIFA, contact Admin</p>;
 
-              const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+              const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|live\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
               const ytMatch = fifaUrl.match(ytRegExp);
               const ytId = (ytMatch && ytMatch[2].length === 11) ? ytMatch[2] : null;
 

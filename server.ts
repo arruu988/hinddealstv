@@ -331,7 +331,7 @@ app.post('/api/admin/upload-content', requireAdmin, express.json(), async (req, 
   const isYouTube = pcloudLink.includes('youtube.com/') || pcloudLink.includes('youtu.be/');
   let ytId = null;
   if (isYouTube) {
-    const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|live\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = pcloudLink.match(ytRegExp);
     if (match && match[2].length === 11) ytId = match[2];
   }
