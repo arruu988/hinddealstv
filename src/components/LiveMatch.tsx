@@ -235,7 +235,7 @@ export function LiveMatch() {
             className="w-full h-[60vh] sm:h-[75vh] md:h-[85vh] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 bg-black relative shadow-2xl mx-auto"
           >
             <iframe
-               src="/fifa-live.html"
+               src="https://footsters.api-live.workers.dev/?play=10065&stream=1"
                className="absolute inset-0 w-full h-full border-none"
                allowFullScreen
             />
