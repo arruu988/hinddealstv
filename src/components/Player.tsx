@@ -154,11 +154,12 @@ export function Player() {
           const ytId = (ytMatch && ytMatch[2].length === 11) ? ytMatch[2] : null;
 
           if (ytId) {
+            const origin = typeof window !== 'undefined' ? window.location.origin : '';
             return (
               <iframe
-                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&origin=${origin}`}
                 className={`w-full h-full border-none`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen={true}
               ></iframe>
             );
